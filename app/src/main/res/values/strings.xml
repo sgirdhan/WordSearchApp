@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Search Words</string>
+    <string name="text_view_add_words_to_search">Add words to search:</string>
+    <string name="check_box_match_case">Match case</string>
+    <string name="button_search">Search</string>
+    <string name="edit_text_words" />
+    <string name="text_view_word_frequencies">Word Frequencies:</string>
+    <string name="button_finish">Finish</string>
+    <string name="text_view_word_frquencies" />
+</resources>
+
