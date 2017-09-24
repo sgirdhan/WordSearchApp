@@ -79,10 +79,10 @@ public class Occurence implements Serializable {
         @Override
         public int compare(Occurence o1, Occurence o2) {
             if(o1.lineNum != o2.lineNum) {
-                return o2.lineNum - o1.lineNum;
+                return o1.lineNum - o2.lineNum;
             }
             else {
-                return o2.lineIndex - o1.lineIndex;
+                return o1.lineIndex - o2.lineIndex;
             }
         }
     };

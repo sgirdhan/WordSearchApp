@@ -110,9 +110,9 @@ public class MainActivity extends AppCompatActivity {
         imageButtonAdd=new ImageButton(this);
         linearLayoutWords=new LinearLayout(this);
         imageButtonMinus=new ImageButton(this);
-        TableRow.LayoutParams layoutParams=new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,1f);
-        TableRow.LayoutParams layoutParamsButton=new TableRow.LayoutParams(200,100,1f);
-        TableRow.LayoutParams layoutParamsButtonMinus=new TableRow.LayoutParams(210,100,1f);
+        TableRow.LayoutParams layoutParams=new TableRow.LayoutParams( ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,1f);
+        TableRow.LayoutParams layoutParamsButton=new TableRow.LayoutParams(220,110,1f);
+        TableRow.LayoutParams layoutParamsButtonMinus=new TableRow.LayoutParams(220,110,1f);
         layoutParamsButton.setMargins(5,0,0,0);
         layoutParamsButtonMinus.setMargins(5,0,0,0);
         editTextwords.setLayoutParams(layoutParams);
@@ -171,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
     class SearchAsync extends AsyncTask<ArrayList<String>,Integer,ArrayList<Occurence>>
     {
+        Boolean isCaseSensitive = false;
         ArrayList<Occurence> data;
         ArrayList<String> fileData;
         final static String FILENAME = "textfile.txt";
@@ -179,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             progress.setVisibility(View.VISIBLE);
+            isCaseSensitive = binding.checkBoxMatchCase.isChecked();
         }
 
         @Override
@@ -196,10 +198,11 @@ public class MainActivity extends AppCompatActivity {
         protected ArrayList<Occurence> doInBackground(ArrayList<String>... params) {
             ArrayList<String> wordsToSearch = params[0];
             data = new ArrayList<>();
-
+            TextSearchUtil.getDataFromFile(FILENAME, MainActivity.this);
+            publishProgress(1);
             for (int i = 0; i < wordsToSearch.size(); i++) {
-                data.addAll(TextSearchUtil.SearchKeyWordInFile(FILENAME, wordsToSearch.get(i), i%3, MainActivity.this));
-                publishProgress(i+1);
+                data.addAll(TextSearchUtil.wordSearch(wordsToSearch.get(i), i%3, isCaseSensitive));
+                publishProgress(i+2);
             }
 
             Collections.sort(data, Occurence.comp);

@@ -12,7 +12,9 @@ import java.util.Arrays;
 public class TextSearchUtil {
 	private static ArrayList<String> fileLines;
     private static ArrayList<Occurence> result;
-    private static void getDataFromFile(String filePath, Context sc) {
+
+    public static void getDataFromFile(String filePath, Context sc) {
+        fileLines = new ArrayList<>();
 
         if (filePath == null || filePath.isEmpty()) {
             System.out.println("Invalid File Path");
@@ -43,10 +45,19 @@ public class TextSearchUtil {
     }
 
 
-    private static void wordSearch(ArrayList<String> fileLines, String keyWord, int colorIndex){
+    public static ArrayList<Occurence> wordSearch(String keyWord, int colorIndex, Boolean isCaseSensitive){
+        result = new ArrayList<>();
         for(int i = 0; i < fileLines.size(); i++){
             String line = fileLines.get(i);
-            String[] lineWords = line.toLowerCase().split(" ");
+            String[] lineWords;
+            String orig_keyWord = keyWord;
+            if(isCaseSensitive) {
+                lineWords = line.replaceAll("[-+.?^:,]"," ").split((" "));
+            }
+            else {
+                lineWords = line.replaceAll("[-+.?^:,]"," ").toLowerCase().split(" ");
+                keyWord = keyWord.toLowerCase();
+            }
 
             ArrayList<String> wordsList = new ArrayList<String>(Arrays.asList(lineWords));
 
@@ -154,31 +165,10 @@ public class TextSearchUtil {
                         currentIndex = currentIndex + 1;
                     }
                     finalString = "..."+finalString+"...";
-                    result.add(new Occurence(keyWord, i, startIndex, colorIndex, finalString));
+                    result.add(new Occurence(orig_keyWord, i, startIndex, colorIndex, finalString));
                 }
             }
         }
-    }
-
-    /**
-     * @param filePath Path of the text file
-     * @param keyWord Word to search for in the file
-     * 
-     * @return ArrayList of search results with trailing and leading texts
-     * 
-     */
-    public static ArrayList<Occurence> SearchKeyWordInFile(String filePath, String keyWord, int colorIndex, Context sc) {
-        fileLines = new ArrayList<>();
-        result = new ArrayList<>();
-
-        getDataFromFile(filePath, sc);
-
-        int totalLines = fileLines.size();
-
-        wordSearch(fileLines, keyWord, colorIndex);
-        int n = result.size();
         return result;
-
     }
-
 }
