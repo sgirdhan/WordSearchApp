@@ -1,6 +1,8 @@
 package com.example.sharangirdhani.homework03;
 
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 import com.example.sharangirdhani.homework03.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
     LinearLayout linearLayoutWords;
@@ -31,9 +34,9 @@ public class MainActivity extends AppCompatActivity {
     int lineaarLayoutCount=201;
     int buttonCountMinus=301 ;
     ArrayList<String> searchWords;
-    final static String COUNT_KEY="value";
-    final static String WORDS_KEY="value2";
-    final static int INTENT_KEY=50;
+    final static String FINAL_DATA="MAINACT";
+    final static int INTENT_KEY = 50;
+    final static String BUNDLEDATA = "BUNDLE";
 
     private ActivityMainBinding binding;
     @Override
@@ -49,29 +52,49 @@ public class MainActivity extends AppCompatActivity {
 
         linearLayoutVertical= binding.linearLayoutVertical;
         progress = binding.progressBar;
-        progress.setMax(100);
-        progress.setProgress(0);
         progress.setVisibility(View.INVISIBLE);
+
+        binding.buttonSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(editTextwordsMain.getText().toString().trim().length() > 0) {
+                    progress.setMax(searchWords.size() + 1);
+                    progress.setProgress(0);
+                    new SearchAsync().execute(searchWords);
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this,"Please provide value to search",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         imageButtonAddMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(!(editTextwordsMain.getText().toString().trim().isEmpty())){
-                    searchWords.add(editTextwordsMain.getText().toString());
-                    imageButtonAddMain.setVisibility(v.GONE);
-                    imageButtonMinusMain.setVisibility(v.VISIBLE);
-                    imageButtonMinusMain.setImageResource(R.drawable.remove);
-                    //imageButtonMinusMain.setBackgroundResource(R.drawable.remove);
-                    imageButtonMinusMain.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            searchWords.remove(editTextwordsMain.getText().toString());
-                            LinearLayout temp= binding.linearLayoutWords;
-                            temp.removeAllViews();
-                            linearLayoutVertical.removeView(temp);
-                        }
-                    });
-                    repeatControls();
+                    String key = editTextwordsMain.getText().toString();
+                    if(!searchWords.contains(key)) {
+                        searchWords.add(editTextwordsMain.getText().toString());
+                        imageButtonAddMain.setVisibility(v.GONE);
+                        imageButtonMinusMain.setVisibility(v.VISIBLE);
+                        imageButtonMinusMain.setImageResource(R.drawable.remove);
+                        //imageButtonMinusMain.setBackgroundResource(R.drawable.remove);
+                        imageButtonMinusMain.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                searchWords.remove(editTextwordsMain.getText().toString());
+                                LinearLayout temp= binding.linearLayoutWords;
+                                temp.removeAllViews();
+                                linearLayoutVertical.removeView(temp);
+                            }
+                        });
+                        repeatControls();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "Search keyword already present", Toast.LENGTH_SHORT).show();
+                    }
+
                 }
                 else{
                     Toast.makeText(MainActivity.this, "Enter Search Value", Toast.LENGTH_SHORT).show();
@@ -144,5 +167,67 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout temp= (LinearLayout) findViewById(id-100);
         temp.removeAllViews();
         linearLayoutVertical.removeView(temp);
+    }
+
+    class SearchAsync extends AsyncTask<ArrayList<String>,Integer,ArrayList<Occurence>>
+    {
+        ArrayList<Occurence> data;
+        ArrayList<String> fileData;
+        final static String FILENAME = "textfile.txt";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progress.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Occurence> finalData) {
+            super.onPostExecute(finalData);
+            progress.setVisibility(View.INVISIBLE);
+            Intent intent=new Intent(MainActivity.this,ResultActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(FINAL_DATA, finalData);
+            intent.putExtra(BUNDLEDATA, bundle);
+            startActivityForResult(intent, INTENT_KEY);
+        }
+
+        @Override
+        protected ArrayList<Occurence> doInBackground(ArrayList<String>... params) {
+            ArrayList<String> wordsToSearch = params[0];
+            data = new ArrayList<>();
+
+            for (int i = 0; i < wordsToSearch.size(); i++) {
+                data.addAll(TextSearchUtil.SearchKeyWordInFile(FILENAME, wordsToSearch.get(i), i%3, MainActivity.this));
+                publishProgress(i+1);
+            }
+
+            Collections.sort(data, Occurence.comp);
+
+            publishProgress(wordsToSearch.size() + 1);
+            return data;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            progress.setProgress(values[0]);
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        int count = lineaarLayoutCount - 201;
+        LinearLayout linearLayoutVertical = (LinearLayout) findViewById(R.id.linearLayoutVertical);
+        linearLayoutVertical.removeViews(1,count);
+        editTextwordsMain.setText("");
+        searchWords.clear();
+        imageButtonMinusMain.setVisibility(View.GONE);
+        imageButtonAddMain.setVisibility(View.VISIBLE);
+        buttonCount=1;
+        editTextCount=101;
+        lineaarLayoutCount=201;
+        buttonCountMinus=301 ;
     }
 }
